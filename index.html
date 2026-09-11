@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MoA path annotation</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="gate" class="gate">
+  <h1>Mechanism-of-action path annotation</h1>
+  <p>Your work is saved in this browser automatically. Use the same browser and the same
+     device each time, and download a backup file regularly.</p>
+  <form id="gate-form">
+    <input id="gate-code" placeholder="annotator code" autocomplete="off" autofocus>
+    <button type="submit">Start</button>
+  </form>
+  <div id="gate-known" hidden>
+    <p class="hint">Codes available in this build:</p>
+    <div class="chips" id="gate-codes"></div>
+  </div>
+  <p id="gate-error" class="error"></p>
+</div>
+
+<header id="bar" hidden>
+  <span class="brand">MoA annotation</span>
+  <span id="who" class="pill"></span>
+  <span id="counter" class="pill"></span>
+  <div class="progress"><div id="progress-fill"></div></div>
+  <span class="spacer"></span>
+  <button id="btn-export" class="ghost" title="Download your progress as JSON — this is the file to send back">Download</button>
+  <label class="ghost filebtn" title="Restore from a previously downloaded JSON">Restore<input id="file-restore" type="file" accept=".json" hidden></label>
+  <label class="ghost filebtn" title="Load the stage-2 reference file you were sent">Stage-2 file<input id="file-stage2" type="file" accept=".json" hidden></label>
+  <button id="btn-export-csv" class="ghost">CSV</button>
+  <button id="btn-stage" class="ghost">Stage 2</button>
+  <button id="btn-rubric" class="ghost">Rubric</button>
+  <span id="saved" class="saved"></span>
+</header>
+
+<main id="app" hidden>
+
+  <section id="stage1">
+    <div class="col chain-col">
+      <div class="query">
+        <div class="qrow"><span class="label">Drug</span><b id="s1-drug"></b></div>
+        <div class="qrow"><span class="label">Disease</span><b id="s1-disease"></b></div>
+      </div>
+      <p class="hint" id="chain-hint">Read the chain. The decision tree is on the right.</p>
+      <ol id="chain" class="chain"></ol>
+    </div>
+
+    <div class="col walk-col">
+      <div id="steps"></div>
+
+      <div id="verdict" class="verdict">
+        <div class="verdict-head">
+          <span id="v-tier" class="tier-badge">—</span>
+          <span id="v-score" class="score"></span>
+        </div>
+        <p id="v-reason" class="reason">Answer Step A to begin.</p>
+        <table id="v-cols" class="derived"></table>
+        <details id="override-box">
+          <summary>Disagree with the derived tier?</summary>
+          <p class="hint">The tree is the default, not a cage. Override it and say why —
+            both the override and the reason are recorded.</p>
+          <select id="override-tier"><option value="">— no override —</option></select>
+          <textarea id="override-reason" rows="2"
+                    placeholder="Why the tree's answer is wrong here"></textarea>
+        </details>
+      </div>
+
+      <div class="freetext">
+        <label>flags<div class="chips" id="flag-chips"></div></label>
+        <label>note
+          <textarea id="f-note" rows="4"
+            placeholder="Name the step that decided the tier and the decisive node. If you ruled out a candidate target, say which and why."></textarea>
+        </label>
+        <label>refs
+          <textarea id="f-refs" rows="2"
+            placeholder="PMID:… UniProt:P….. GO:……. ChEMBL… — real identifiers only, never invent one"></textarea>
+        </label>
+      </div>
+
+      <div class="actions">
+        <div>
+          <button id="btn-prev" class="ghost">← Prev</button>
+          <button id="btn-next" class="ghost">Skip →</button>
+        </div>
+        <button id="btn-submit" class="primary">Submit &amp; next →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="stage2" hidden>
+    <div class="col">
+      <div class="query">
+        <div class="qrow"><span class="label">Drug</span><b id="s2-drug"></b></div>
+        <div class="qrow"><span class="label">Disease</span><b id="s2-disease"></b></div>
+        <div class="qrow"><span class="label">Your tier</span><b id="s2-tier"></b></div>
+      </div>
+      <div class="compare">
+        <div><h3>Predicted</h3><ol id="s2-pred" class="chain small"></ol></div>
+        <div><h3>Reference</h3><ol id="s2-ref" class="chain small"></ol></div>
+      </div>
+    </div>
+    <div class="col walk-col">
+      <div id="s2-questions"></div>
+      <label class="freetext">rel_note
+        <textarea id="s2-note" rows="4"
+          placeholder="Name the nodes that do and do not correspond."></textarea>
+      </label>
+      <div class="actions">
+        <button id="s2-prev" class="ghost">← Prev</button>
+        <button id="s2-submit" class="primary">Submit &amp; next →</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<aside id="rubric" class="drawer" hidden>
+  <button id="rubric-close" class="close">×</button>
+  <div id="rubric-body"></div>
+</aside>
+
+<script src="manifest.js"></script>
+<script src="rubric_text.js"></script>
+<script src="items_A.js"></script><script src="items_B.js"></script><script src="rubric.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

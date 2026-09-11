@@ -1,0 +1,1 @@
+window.ANNOTATORS = ["A", "B"];
