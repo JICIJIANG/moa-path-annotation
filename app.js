@@ -549,7 +549,9 @@ $('#file-restore').addEventListener('change', async (e) => {
     S.answers = d.answers || {};
     S.stage2Answers = d.stage2 || {};
     persist();
-    load(0);
+    // Land on the first unfinished row, the same place reopening the app lands you.
+    const next = S.items.findIndex((it) => !(S.answers[it.key] || {}).submitted);
+    load(next >= 0 ? next : 0);
     alert(`Restored ${theirs} submitted rows.`);
   } catch (err) { alert('Could not read that file: ' + err.message); }
   e.target.value = '';
