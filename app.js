@@ -22,7 +22,6 @@ const el = (tag, cls, text) => {
 const S = {
   code: '', items: [], stage: 1, position: 0,
   answers: {},            // key -> { walk, submitted, seconds }
-  stage2Items: null,      // key -> { ref_nodes, ref_relations }, loaded from file
   stage2Answers: {},      // key -> { rel_to_gold, alt_head, flag_gold, rel_note, submitted }
   enteredAt: 0, saveTimer: null, sinceBackup: 0,
 };
@@ -143,11 +142,17 @@ function updateBar() {
   $('#counter').textContent = S.stage === 1
     ? `${done} / ${total} submitted` : `stage 2 · ${done} / ${total}`;
   $('#progress-fill').style.width = `${(100 * done) / total}%`;
-  const unlocked = submittedCount() >= total && S.stage2Items;
+  // Stage 2 is advisory, never locked: finishing stage 1 first is the instruction, and
+  // the confirm dialog plus the banner carry it.
   $('#btn-stage').textContent = S.stage === 1 ? 'Stage 2' : 'Stage 1';
-  $('#btn-stage').disabled = S.stage === 1 && !unlocked;
-  $('#btn-stage').title = unlocked ? ''
-    : 'Stage 2 opens once every row is submitted and you load the stage-2 file.';
+  const left = total - submittedCount();
+  $('#s2-warning').hidden = !(S.stage === 2 && left > 0);
+  if (left > 0) {
+    $('#s2-warning').textContent =
+      `${left} stage-1 row${left > 1 ? 's are' : ' is'} still unsubmitted. `
+      + 'Reference paths are visible here, and seeing them will colour those remaining '
+      + 'judgements — finish stage 1 first if you can.';
+  }
 }
 
 function touch(textOnly = false) {
@@ -469,7 +474,15 @@ $('#btn-submit').addEventListener('click', () => {
 $('#btn-prev').addEventListener('click', () => load(S.position - 1));
 $('#btn-next').addEventListener('click', () => load(S.position + 1));
 $('#btn-stage').addEventListener('click', () => {
-  if (S.stage === 1) loadStage2(0); else load(0);
+  if (S.stage !== 1) { load(0); return; }
+  // Warn once per switch into stage 2, not on every item — the banner carries it after.
+  const left = S.items.length - submittedCount();
+  if (left > 0 && !confirm(
+    `${left} of your ${S.items.length} stage-1 rows are not submitted yet.\n\n`
+    + 'Stage 2 shows the curated reference path. Once you have seen references, they '
+    + 'will influence how you judge the rows you have left — the two stages are '
+    + 'separated for that reason.\n\nOpen stage 2 anyway?')) return;
+  loadStage2(0);
 });
 
 /* ------------------------------------------------------ export / import */
@@ -542,31 +555,12 @@ $('#file-restore').addEventListener('change', async (e) => {
   e.target.value = '';
 });
 
-$('#file-stage2').addEventListener('change', async (e) => {
-  const f = e.target.files[0];
-  if (!f) return;
-  try {
-    const d = JSON.parse(await f.text());
-    if (!d.items) throw new Error('not a stage-2 file');
-    if (d.annotator !== S.code) throw new Error(`that file is for ${d.annotator}, not ${S.code}`);
-    S.stage2Items = Object.fromEntries(d.items.map((x) => [x.key, x]));
-    updateBar();
-    alert('Stage-2 reference paths loaded. The Stage 2 button is now available.');
-  } catch (err) { alert('Could not read that file: ' + err.message); }
-  e.target.value = '';
-});
-
 /* --------------------------------------------------------------- stage 2 */
 
 function loadStage2(position) {
-  if (submittedCount() < S.items.length) {
-    alert('Finish and submit every stage-1 row first.'); return;
-  }
-  if (!S.stage2Items) { alert('Load the stage-2 file first.'); return; }
   S.stage = 2;
   S.position = Math.max(0, Math.min(position, S.items.length - 1));
   const it = item();
-  const ref = S.stage2Items[it.key];
   const a = S.answers[it.key] || { walk: {} };
   const d = window.RUBRIC.derive(a.walk, it.nodes, it.relations);
   $('#stage1').hidden = true; $('#stage2').hidden = false;
@@ -574,8 +568,8 @@ function loadStage2(position) {
   $('#s2-drug').textContent = it.drug;
   $('#s2-disease').textContent = it.disease;
   $('#s2-tier').textContent = `${d.tier ?? '—'}  (${(d.score ?? 0).toFixed(1)})`;
-  drawChain($('#s2-pred'), it.nodes, it.relations, ref.ref_nodes);
-  drawChain($('#s2-ref'), ref.ref_nodes, ref.ref_relations, it.nodes);
+  drawChain($('#s2-pred'), it.nodes, it.relations, it.ref_nodes);
+  drawChain($('#s2-ref'), it.ref_nodes, it.ref_relations, it.nodes);
   S.stage2Answers[it.key] ||= {};
   $('#s2-note').value = S.stage2Answers[it.key].rel_note || '';
   renderStage2Questions();

@@ -28,7 +28,6 @@
   <span class="spacer"></span>
   <button id="btn-export" class="ghost" title="Download your progress as JSON — this is the file to send back">Download</button>
   <label class="ghost filebtn" title="Restore from a previously downloaded JSON">Restore<input id="file-restore" type="file" accept=".json" hidden></label>
-  <label class="ghost filebtn" title="Load the stage-2 reference file you were sent">Stage-2 file<input id="file-stage2" type="file" accept=".json" hidden></label>
   <button id="btn-export-csv" class="ghost">CSV</button>
   <button id="btn-stage" class="ghost">Stage 2</button>
   <button id="btn-rubric" class="ghost">Rubric</button>
@@ -102,6 +101,7 @@
       </div>
     </div>
     <div class="col walk-col">
+      <p id="s2-warning" class="warn-banner" hidden></p>
       <div id="s2-questions"></div>
       <label class="freetext">rel_note
         <textarea id="s2-note" rows="4"

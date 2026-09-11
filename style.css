@@ -161,3 +161,7 @@ label.filebtn { display: inline-block; background: transparent; border: 1px soli
                 font-size: inherit; }
 label.filebtn:hover { background: var(--accent-soft); }
 .actions > div { display: flex; gap: 8px; }
+
+/* advisory banner in stage 2 when stage 1 is not finished */
+.warn-banner { background: var(--warn); border: 1px solid var(--v); border-radius: 8px;
+               padding: 10px 13px; margin: 0 0 14px; font-size: 13.5px; line-height: 1.5; }
