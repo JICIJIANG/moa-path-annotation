@@ -65,17 +65,32 @@ const s2Count = () => Object.values(S.stage2Answers).filter((a) => a.submitted).
 
 /* ------------------------------------------------------------------- gate */
 
+/* FNV-1a/32, mirroring build_static.code_hash byte for byte (UTF-8, not UTF-16 units).
+ * Bundles are named by this hash so no annotator name is in a filename, a script tag or
+ * view-source. Concealment, not security — it keeps a visitor to a public site from
+ * learning who is annotating, nothing more. */
+function codeHash(code) {
+  const bytes = new TextEncoder().encode(code);
+  let h = 0x811c9dc5;
+  for (const b of bytes) {
+    h ^= b;
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, '0');
+}
+
 $('#gate-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  const code = $('#gate-code').value.trim().toUpperCase();
-  const bundle = window[`ITEMS_${code}`];
+  const code = $('#gate-code').value.trim().toLowerCase();
+  const bundle = code && window[`B_${codeHash(code)}`];
   if (!bundle) {
-    $('#gate-error').textContent =
-      `No bundle for "${code}". Available: ${(window.ANNOTATORS || []).join(', ') || 'none'}`;
+    // Deliberately does not say which codes exist.
+    $('#gate-error').textContent = 'That code has no bundle in this build.';
     return;
   }
   S.code = code;
   S.items = bundle.items;
+  localStorage.setItem('moa-annot:last', code);
   const had = restore();
   $('#gate').hidden = true; $('#bar').hidden = false; $('#app').hidden = false;
   buildRubricDrawer();
@@ -84,17 +99,11 @@ $('#gate-form').addEventListener('submit', (e) => {
   load(next >= 0 ? next : S.position);
 });
 
+// The code is remembered in this browser so the annotator types it once, but it is
+// never listed anywhere before they do.
 (() => {
-  const box = $('#gate-codes');
-  (window.ANNOTATORS || []).forEach((c) => {
-    const b = el('button', 'chip', c);
-    b.type = 'button';
-    b.addEventListener('click', () => {
-      $('#gate-code').value = c; $('#gate-form').requestSubmit();
-    });
-    box.append(b);
-  });
-  if ((window.ANNOTATORS || []).length) $('#gate-known').hidden = false;
+  const last = localStorage.getItem('moa-annot:last');
+  if (last) $('#gate-code').value = last;
 })();
 
 /* -------------------------------------------------------------- stage 1 */

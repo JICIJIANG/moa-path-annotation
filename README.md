@@ -13,7 +13,7 @@ Annotation UI for drug mechanism-of-action paths (11-tier rubric).
 Everything runs in the browser. Progress is kept in `localStorage` and
 exported as a JSON file; nothing is sent anywhere.
 
-Annotator bundles in this build: A, B.
+3 annotator bundle(s) in this build.
 
 Reference paths are deliberately NOT in this deployment — they are handed
 over separately, after stage 1 is returned.
